@@ -15,7 +15,7 @@ color hexFill;
 void setup() {
   surface.setSize(int(((1.5*hexCountX) + 0.5)*radius),int((hexCountY+.5)*sqrt(3)*radius));
   println("Screen size: " + int(((1.5*hexCountX)+ 0.5)*radius) + "," + int((hexCountY+.5)*sqrt(3)*radius));
-  smooth();
+  noStroke();
   frameRate(30);
   background(255);
   setupHexes();
