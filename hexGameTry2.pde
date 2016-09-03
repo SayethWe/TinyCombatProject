@@ -1,28 +1,38 @@
 int hexCountX = 8;
 int hexCountY = 4;
-color lakeColor = color(10,50,255);
-color forestColor = color(10,127,10);
-color mountainColor = color(75,75,75);
-color archerColor = color(50,255,50);
-color knightColor = color(255,50,50);
-color mageColor = color(50,50,255);
-int radius = 100;
-boolean randomColorSelection = true;
+//terrain colors
+color lake = color(10,50,255);
+color forest = color(10,127,10);
+color mountain = color(75,75,75);
+color capitalOne = color(0,0,0);
+color capitalTwo = color(255,255,255);
+//troops colors
+color archer = color(50,255,50);
+color knight = color(255,50,50);
+color mage = color(50,50,255);
+int hexRadius = 100;
+int troopRadius = 50;
+boolean randomColorSelection = false;
 
 Hexagon[][] hexGrid;
+//ArrayList troops
 color hexFill;
 
 void setup() {
-  surface.setSize(int(((1.5*hexCountX) + 0.5)*radius),int((hexCountY+.5)*sqrt(3)*radius));
-  println("Screen size: " + int(((1.5*hexCountX)+ 0.5)*radius) + "," + int((hexCountY+.5)*sqrt(3)*radius));
+  surface.setSize(int(((1.5*hexCountX) + 0.5)*hexRadius),int((hexCountY+.5)*sqrt(3)*hexRadius));
+  println("Screen size: " + int(((1.5*hexCountX)+ 0.5)*hexRadius) + "," + int((hexCountY+.5)*sqrt(3)*hexRadius));
   noStroke();
   frameRate(30);
-  background(255);
+  background(127);
   setupHexes();
 }
 
 void draw() {
   drawHexes();
+}
+
+void keyPressed() { //QA code, also fun in random terrain mode.
+  setupHexes();
 }
 
 void setupHexes() {
@@ -38,9 +48,9 @@ void setupHexes() {
         println("Algorithmically selecting Hex Color");
       }
       if ((hexX % 2) == 0) {
-        hexGrid[hexX][hexY] = new Hexagon(radius * ((1.5 * hexX) + 1), sqrt(3) * radius * (hexY + .5), radius, hexFill);
+        hexGrid[hexX][hexY] = new Hexagon(hexRadius * ((1.5 * hexX) + 1), sqrt(3) * hexRadius * (hexY + .5), hexRadius, hexFill);
       } else {
-        hexGrid[hexX][hexY] = new Hexagon(radius *((1.5 * hexX) + 1), sqrt(3) * radius * (hexY + 1), radius, hexFill);
+        hexGrid[hexX][hexY] = new Hexagon(hexRadius *((1.5 * hexX) + 1), sqrt(3) * hexRadius * (hexY + 1), hexRadius, hexFill);
       }
     }
   }
@@ -51,41 +61,47 @@ void colorNextHex() {
   println("color number " + int(random(0,3)) + " has been chosen.");
   switch(int(random(0,3))) {
     case 0 :
-      hexFill = lakeColor;
+      hexFill = lake;
       break;
     case 1:
-      hexFill = forestColor;
+      hexFill = forest;
       break;
     case 2:
-      hexFill = mountainColor;
+      hexFill = mountain;
       break;
   }
 }
 
 void colorNextHex(int hexX, int hexY) {
   //the algorithm selection code (in QA)
-  switch(hexY%3) {
-    case 0 :
-      if((hexX % 2) == 0) {
-        hexFill = forestColor;
-      } else {
-        hexFill = lakeColor;
-      }
-      break;
-    case 1:
-      if((hexX % 2) == 0) {
-        hexFill = mountainColor;
-      } else {
-        hexFill = forestColor;
-      }
-      break;
-    case 2:
-      if((hexX % 2) == 0) {
-        hexFill = lakeColor;
-      } else {
-        hexFill = mountainColor;
-      }
-      break;
+  if(hexX + hexY == 0) {
+    hexFill = capitalOne;
+  } else if (hexX + hexY == ((hexCountX + hexCountY) - 2)) {
+    hexFill = capitalTwo;
+  } else {
+    switch(hexY%3) {
+      case 0 :
+        if((hexX % 2) == 0) {
+          hexFill = forest;
+        } else {
+          hexFill = lake;
+        }
+        break;
+      case 1:
+        if((hexX % 2) == 0) {
+          hexFill = mountain;
+        } else {
+          hexFill = forest;
+        }
+        break;
+      case 2:
+        if((hexX % 2) == 0) {
+          hexFill = lake;
+        } else {
+          hexFill = mountain;
+        }
+        break;
+    }
   }
 }
 
@@ -98,8 +114,7 @@ void drawHexes() {
 }
 
 class Hexagon {
-  float x;
-  float y;
+  float x, y;
   float angle = TWO_PI/6;
   int radius;
   color fillColor;
@@ -113,12 +128,49 @@ class Hexagon {
   }
 
   void display() {
+    fill(fillColor);
     beginShape();
     for (int vertex = 0; vertex < 6; vertex++) {
       vertex(x + radius * cos(angle * vertex), y + radius * sin(angle * vertex));
       //println("Vertex = " + vertex + " Courtesy " + this);
     }
-    fill(fillColor);
     endShape(CLOSE);
+  }
+  
+  float getX() {
+    return x;
+  }
+  
+  float getY() {
+    return y;
+  }
+  
+  color getType() {
+    return fillColor;
+  }
+}
+
+class Troop {
+  int radius;
+  color fillColor;
+  Hexagon gridLocation;
+  
+  Troop(Hexagon _spawnLocation, int _radius, color _fillColor) {
+    gridLocation = _spawnLocation;
+    radius = _radius;
+    fillColor = _fillColor;
+  }
+  
+  void display() {
+    fill(fillColor);
+    ellipse(gridLocation.getX(),gridLocation.getY(),radius,radius);
+  }
+  
+  Hexagon getLocation() {
+    return gridLocation;
+  }
+  
+  color getType() {
+    return fillColor;
   }
 }
