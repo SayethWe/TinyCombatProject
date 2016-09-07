@@ -6,18 +6,21 @@ int hexRadius = 100;
 color lake = color(60,100,255);
 color forest = color(10,127,10);
 color mountain = color(75,75,75);
-color capitalOne = color(0,0,0);
-color capitalTwo = color(255,255,255);
+//team colors
+color teamOne = color(255,255,255);
+color teamTwo = color(000,000,000);
 //troops colors
 color archer = color(50,255,50);
 color knight = color(255,50,50);
 color mage = color(50,50,255);
 int troopRadius = 50;
 //other magic numbers
-boolean randomColorSelection = true;
+boolean randomColorSelection = false;
 
 Hexagon[][] hexGrid;
 ArrayList<Troop> troops = new ArrayList<Troop>();
+Troop selectedTroop;
+Hexagon selectedGrid;
 color hexFill;
 
 void setup() {
@@ -26,7 +29,7 @@ void setup() {
   println("Screen size: " + int(((1.5*hexCountX)+ 0.5)*hexRadius) + "," + int((hexCountY+.5)*sqrt(3)*hexRadius));
   noStroke();
   frameRate(30);
-  background(127);
+  background(240,206,148);
   setupHexes();
   spawnTestTroops();
 }
@@ -40,10 +43,20 @@ void keyPressed() { //QA code, also fun in random terrain mode.
   setupHexes();
 }
 
+void mousePressed() { //select something
+  for(int hexX = 0; hexX < hexCountX; hexX++) {
+    for(int hexY = 0; hexY < hexCountY; hexY++) {
+      if(hexGrid[hexX][hexY].contains(mouseX,mouseY)) {
+        selectedGrid = hexGrid[hexX][hexY];
+      }
+    }
+  }
+}
+
 void spawnTestTroops() { //some checker code before troop placement is implemented
-  spawnTroop(hexGrid[1][1],knight);
-  spawnTroop(hexGrid[1][2],archer);
-  spawnTroop(hexGrid[2][1],mage);
+  spawnTroop(hexGrid[1][1],knight,teamOne);
+  spawnTroop(hexGrid[1][0],archer,teamTwo);
+  spawnTroop(hexGrid[2][1],mage,teamOne);
 }
 
 void setupHexes() {
@@ -51,7 +64,7 @@ void setupHexes() {
   for (int hexX = 0; hexX < hexCountX; hexX++) {
     for (int hexY = 0; hexY < hexCountY; hexY++) {
       println("Hexagon HexX = " + hexX + ", HexY = " + hexY + " is being created.");
-        colorNextHex(hexX,hexY); //select color algorithmically
+        colorNextHex(hexX,hexY); //select color for the hexagons
       if ((hexX % 2) == 0) {
         hexGrid[hexX][hexY] = new Hexagon(hexRadius * ((1.5 * hexX) + 1), sqrt(3) * hexRadius * (hexY + .5), hexRadius, hexFill);
       } else {
@@ -63,9 +76,9 @@ void setupHexes() {
 
 void colorNextHex(int hexX, int hexY) {
   if(hexX + hexY == 0) {
-    hexFill = capitalOne;
+    hexFill = teamOne;
   } else if (hexX + hexY == ((hexCountX + hexCountY) - 2)) {
-    hexFill = capitalTwo;
+    hexFill = teamTwo;
   } else if(randomColorSelection){  //generate by random
     println("Randomly selecting Hex Color");
     println("color number " + int(random(0,3)) + " has been chosen.");
@@ -116,8 +129,8 @@ void drawHexes() {
   }
 }
 
-void spawnTroop(Hexagon spawnLocation, color type) {
-  troops.add(new Troop(spawnLocation, troopRadius, type));
+void spawnTroop(Hexagon spawnLocation, color type, color team) {
+  troops.add(new Troop(spawnLocation, troopRadius, type, team));
 }
 
 void drawTroops() {
@@ -139,7 +152,6 @@ class Hexagon {
   float angle = TWO_PI/6;
   int radius;
   color fillColor;
-  boolean selected;
   
   Hexagon(float _x, float _y, int _radius, color _fillColor) {
     x = _x;
@@ -148,28 +160,9 @@ class Hexagon {
     fillColor = _fillColor;
     println("New Hex at " + x + "," + y + " of size " + radius);
   }
-  
-  boolean checkSelected() {
-    for (Troop thisTroop : troops) {
-      if(thisTroop.getLocation() == this) {
-        if(this.contains(mouseX,mouseY)&&(dist(mouseX,mouseY,x,y)>troopRadius)) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        if(this.contains(mouseX,mouseY)) {
-          return true;
-        } else {
-          return false;
-        }
-      }
-    }
-    return false;
-  }
 
   void display() {
-    if(checkSelected()) {
+    if(selectedGrid == this) {
       fill(127);
     } else {
       fill(fillColor);
@@ -206,25 +199,49 @@ class Hexagon {
 
 class Troop {
   int radius;
-  color fillColor;
+  color fillColor, teamColor;
+  float x, y;
   Hexagon gridLocation;
+  boolean selected;
   
-  Troop(Hexagon _spawnLocation, int _radius, color _fillColor) {
+  Troop(Hexagon _spawnLocation, int _radius, color _fillColor, color _teamColor) {
     gridLocation = _spawnLocation;
     radius = _radius;
     fillColor = _fillColor;
+    teamColor = _teamColor;
   }
   
   void display() {
+    x = gridLocation.getX();
+    y = gridLocation.getY();
     fill(fillColor);
-    ellipse(gridLocation.getX(),gridLocation.getY(),radius,radius);
+    if(selected) {
+      //do something obvious to show selection
+    }
+    ellipse(x,y,radius,radius);
+    fill(teamColor);
+    ellipse(x,y,radius/2,radius/2);
+  }
+  
+  void move(Hexagon moveTo) {
+    if(dist(moveTo.getX(),moveTo.getY(),x,y) <= radius) {
+      gridLocation = moveTo;
+    }
   }
   
   Hexagon getLocation() {
     return gridLocation;
   }
   
+  void toggleSelect() {
+    selected = !selected;
+  }
+  
   color getType() {
     return fillColor;
+  }
+  
+  color getTeam() {
+    return teamColor;
   }
 }
