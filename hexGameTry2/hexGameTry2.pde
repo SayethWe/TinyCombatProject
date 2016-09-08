@@ -23,6 +23,8 @@ Troop selectedTroop;
 Hexagon selectedGrid;
 color hexFill;
 
+//write something somewhere, maybe a comment at the top of the page!
+
 void setup() {
   ellipseMode(RADIUS);
   surface.setSize(int(((1.5*hexCountX) + 0.5)*hexRadius),int((hexCountY+.5)*sqrt(3)*hexRadius));
