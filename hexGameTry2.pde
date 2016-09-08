@@ -48,6 +48,9 @@ void mousePressed() { //select something
     for(int hexY = 0; hexY < hexCountY; hexY++) {
       if(hexGrid[hexX][hexY].contains(mouseX,mouseY)) {
         selectedGrid = hexGrid[hexX][hexY];
+        if (selectedGrid.getOccupant() != null) {
+          selectedTroop = selectedGrid.getOccupant();
+        }
       }
     }
   }
@@ -131,6 +134,7 @@ void drawHexes() {
 
 void spawnTroop(Hexagon spawnLocation, color type, color team) {
   troops.add(new Troop(spawnLocation, troopRadius, type, team));
+  spawnLocation.changeOccupant(troops.get(troops.size() - 1));
 }
 
 void drawTroops() {
@@ -152,6 +156,7 @@ class Hexagon {
   float angle = TWO_PI/6;
   int radius;
   color fillColor;
+  Troop occupant;
   
   Hexagon(float _x, float _y, int _radius, color _fillColor) {
     x = _x;
@@ -175,6 +180,10 @@ class Hexagon {
     endShape(CLOSE);
   }
   
+  void changeOccupant(Troop newOccupant) {
+    occupant = newOccupant;
+  }
+  
   float getX() {
     return x;
   }
@@ -185,6 +194,10 @@ class Hexagon {
   
   color getType() {
     return fillColor;
+  }
+  
+  Troop getOccupant() {
+    return occupant;
   }
   
   boolean contains(float _x, float _y) {
@@ -215,12 +228,18 @@ class Troop {
     x = gridLocation.getX();
     y = gridLocation.getY();
     fill(fillColor);
-    if(selected) {
+    if(selectedTroop == this) {
       //do something obvious to show selection
+      fill(fillColor + color(127,127,127));
     }
     ellipse(x,y,radius,radius);
     fill(teamColor);
-    ellipse(x,y,radius/2,radius/2);
+    //ellipse(x,y,radius/2,radius/2);
+    beginShape();
+    for(int vertex = 0; vertex < 3; vertex++) {
+      vertex(x + (radius/2) * cos(PI/6 + vertex * TWO_PI/3), y + (radius/2) * sin(PI/6 + vertex * TWO_PI/3));
+    }
+    endShape(CLOSE);
   }
   
   void move(Hexagon moveTo) {
